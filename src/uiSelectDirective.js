@@ -57,6 +57,36 @@ uis.directive('uiSelect',
             element.removeAttr("tabindex");
           });
         }
+        
+        if (angular.isDefined(attrs.multiple) && angular.isDefined(attrs.required)) {
+          
+          // Custom validator to make required work with mulitple
+          // this pattern modeled after the way angular directly
+          // works with the requiredDirective
+          ngModel.$validators.uiRequired = function (modelValue, viewValue) {
+
+            // then we're dealing with multiple
+            if (Array.isArray(modelValue)) {
+              return modelValue.length > 0;
+            } else if (Array.isArray(viewValue)) {
+              return viewValue.length > 0;
+
+            // otherwise just check the direct model value
+            // for single selects
+            } else {
+              return modelValue !== undefined;
+            }
+
+            // we have to return a check directly.
+            // returning a variable can sometimes
+            // cause the check to return undefined
+            // to the $invalid and $valid properties
+            // due to the way angular parses the view.
+          };
+          attrs.$observe('required', function() {
+            ngModel.$validate();
+          });
+        }
 
         scope.$watch('searchEnabled', function() {
             var searchEnabled = scope.$eval(attrs.searchEnabled);
